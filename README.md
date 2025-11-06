@@ -1,31 +1,75 @@
 # Kubernetes on Proxmox using Terraform
 
-This is a Terraform project to deploy a Kubernetes cluster on a proxmox node.
+Automated deployment of a production-ready Kubernetes cluster on [Proxmox VE](https://proxmox.com/en/) using [Talos Linux](https://www.talos.dev/) and [Terraform](https://developer.hashicorp.com/terraform).
 
-## Initialize project
+## Overview
 
-To download all of the Terraform providers and modules you should first initialize the project.
+This project deploys a highly-available Kubernetes cluster with (all of these parameters can be changed):
+- **3 control plane nodes** (4 cores, 4GB RAM, 32GB disk each)
+- **6 worker nodes** (4 cores, 4GB RAM, 100GB disk each)
+- **Talos Linux** v1.11.3 as the operating system
+- Automated cluster bootstrapping and configuration
+
+## Prerequisites
+
+- **Terraform**
+- **Proxmox VE**
+
+## Quick Start
+
+### 1. Initialize Terraform
+
+Download required providers and modules:
 
 ```bash
 terraform init
 ```
 
-## Deploy
+### 2. Configure (Optional)
 
-Run the `deploy.sh` script to deploy the cluster.
+Edit [`deploy-talos.tf`](deploy-talos.tf) to customize and match your proxmox setup:
+- Node count and names
+- VM resources (CPU, RAM, disk)
+- Network settings
+- Talos version
+- ...
+
+Update [`provider.tf`](provider.tf) to match your Proxmox endpoint.
+
+### 3. Deploy the Cluster
 
 ```bash
 ./deploy.sh
 ```
 
-It will then ask for your proxmox root password.
+You'll be prompted for your Proxmox root password. The deployment takes approximately 10-15 minutes.
 
-## Destroy
+After changing parameters or the amount of nodes you can just run the `deploy.sh` script again.
 
-Run the `destroy.sh` script to destroy the cluster.
+### 4. Access the Cluster
+
+After deployment, retrieve your cluster credentials:
+
+```bash
+# Get kubeconfig
+terraform output -raw kubeconfig > ~/.kube/config
+
+# Get talosconfig
+terraform output -raw talos_config > ~/.talos/config
+
+# Verify cluster access
+talosctl dashboard
+kubectl get nodes
+```
+
+If nothing shows up the cluster is still configuring.
+
+## Cleanup
+
+To destroy the entire cluster:
 
 ```bash
 ./destroy.sh
 ```
 
-It will then ask for your proxmox root password.
+You'll be prompted for your Proxmox root password. This will remove all VMs and associated resources.
