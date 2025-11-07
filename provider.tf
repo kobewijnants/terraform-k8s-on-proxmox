@@ -19,5 +19,6 @@ provider "proxmox" {
 
 variable "proxmox_password" {
   type = string
+  sensitive = true
   description = "Password for your proxmox node"
 }
